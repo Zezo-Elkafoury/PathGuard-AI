@@ -791,17 +791,18 @@ function analyze(){
    The same phrase is suppressed for COOLDOWN_MS to avoid looping speech.
    -------------------------------------------------------------------------- */
 function buildPhrase(d){
-  // Egyptian-Arabic colloquial warnings (street/sidewalk terminology).
-  // "في حد" = there is someone, "في حاجة" = there is something/object,
-  // "قدامك" = ahead of you, "شمالك / يمينك" = your left / your right.
+  // Short spoken warnings:
+  //   person -> "هناك شخص"   (there is a person)
+  //   object -> "شيء ما"      (something)
+  //   "أمامك" = ahead of you, "على يسارك / على يمينك" = on your left / right.
   if (d.class === 'person'){
-    if (d.zone === 'LEFT')  return 'في حد قدامك على شمالك';
-    if (d.zone === 'RIGHT') return 'في حد قدامك على يمينك';
-    return 'في حد قدامك';
+    if (d.zone === 'LEFT')  return 'هناك شخص على يسارك';
+    if (d.zone === 'RIGHT') return 'هناك شخص على يمينك';
+    return 'هناك شخص أمامك';
   }
-  if (d.zone === 'LEFT')  return 'في حاجة على شمالك';
-  if (d.zone === 'RIGHT') return 'في حاجة على يمينك';
-  return 'في حاجة قدامك';
+  if (d.zone === 'LEFT')  return 'شيء ما على يسارك';
+  if (d.zone === 'RIGHT') return 'شيء ما على يمينك';
+  return 'شيء ما أمامك';
 }
 
 /* Prefer an Egyptian-Arabic voice (ar-EG), then any Arabic voice.
@@ -1148,8 +1149,8 @@ ui.btnStart.addEventListener('click', startCamera);
 ui.btnStop.addEventListener('click', stopCamera);
 // test button: clear this phrase's cooldown first, then speak immediately
 ui.btnVoice.addEventListener('click', () => {
-  state.cooldowns.delete('في حد قدامك');
-  speakWarning('في حد قدامك');
+  state.cooldowns.delete('هناك شخص أمامك');
+  speakWarning('هناك شخص أمامك');
   // speaking state is set asynchronously — re-check shortly after
   setTimeout(() => {
     if (!speechSynthesis.speaking) toast('No speech output available in this browser.', true);
