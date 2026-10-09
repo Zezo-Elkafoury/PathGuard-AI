@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0e13">
+<title>PathGuard AI — Visual Assistance Research Prototype</title>
+
+<style>
+/* ============================================================
+   PATHGUARD AI — design tokens
+   Dark, instrument-style theme for a research prototype.
+   ============================================================ */
+:root{
+  --bg:#0a0e13;
+  --panel:#111823;
+  --panel-2:#0d141d;
+  --border:#1e2836;
+  --text:#e6edf5;
+  --muted:#93a1b3;
+  --accent:#2dd4bf;      /* teal: primary actions */
+  --accent-2:#38bdf8;    /* blue: data / objects  */
+  --violet:#a78bfa;
+  --good:#34d399;
+  --bad:#f87171;
+  --warn:#fbbf24;
+  --radius:14px;
+  --mono:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(56,189,248,.07), transparent 60%),
+    radial-gradient(900px 500px at -10% 10%, rgba(45,212,191,.06), transparent 55%),
+    var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  line-height:1.45;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 60px}
+
+/* ---------- header ---------- */
+header.top{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:6px 2px 18px;flex-wrap:wrap;
+}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{
+  width:42px;height:42px;border-radius:12px;flex:none;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:grid;place-items:center;color:#04121a;font-weight:800;font-size:18px;
+  box-shadow:0 6px 22px rgba(45,212,191,.25);
+}
+.brand h1{font-size:20px;margin:0;letter-spacing:.2px}
+.brand .sub{font-size:12.5px;color:var(--muted);margin-top:1px}
+.badges{display:flex;gap:8px;flex-wrap:wrap}
+.badge{
+  font-family:var(--mono);font-size:11px;letter-spacing:.4px;
+  border:1px solid var(--border);background:var(--panel);
+  color:var(--muted);padding:6px 10px;border-radius:999px;
+}
+.badge.live{color:var(--accent);border-color:rgba(45,212,191,.35)}
+
+/* ---------- safety banner ---------- */
+.safety-banner{
+  display:flex;gap:12px;align-items:flex-start;
+  border:1px solid rgba(251,191,36,.35);
+  background:linear-gradient(180deg, rgba(251,191,36,.08), rgba(251,191,36,.03));
+  color:#fde9c0;border-radius:var(--radius);
+  padding:12px 16px;margin-bottom:18px;font-size:13.5px;
+}
+.safety-banner strong{color:var(--warn)}
+.safety-banner .ico{font-size:17px;line-height:1.3}
+
+/* ---------- layout ---------- */
+.stage-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+@media (max-width:920px){.stage-grid{grid-template-columns:1fr}}
+
+.card{
+  background:linear-gradient(180deg,var(--panel),var(--panel-2));
+  border:1px solid var(--border);border-radius:var(--radius);
+  overflow:hidden;
+}
+.card-head{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:12px 16px;border-bottom:1px solid var(--border);
+}
+.card-head h2{margin:0;font-size:13px;letter-spacing:.10em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.card-body{padding:16px}
+
+/* ---------- video stage ---------- */
+.video-stage{
+  position:relative;background:#05080c;aspect-ratio:16/9;
+  display:grid;place-items:center;overflow:hidden;
+}
+.video-stage video{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:cover;display:none;background:#05080c;
+}
+.video-stage.on video{display:block}
+.video-stage canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.placeholder{position:relative;text-align:center;color:var(--muted);padding:36px 20px;z-index:2}
+.video-stage.on .placeholder{display:none}
+.placeholder .lens{
+  width:64px;height:64px;margin:0 auto 14px;border-radius:50%;
+  border:2px dashed #31404f;display:grid;place-items:center;font-size:24px;
+}
+.placeholder p{margin:6px 0 0;font-size:13.5px}
+.placeholder .hint{font-size:12px;color:#5f6f82}
+.stage-foot{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 14px;border-top:1px solid var(--border);flex-wrap:wrap;
+}
+.zone-legend{display:flex;gap:14px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+.zone-legend span b{color:var(--text);font-weight:600}
+
+/* ---------- buttons ---------- */
+button{font-family:inherit}
+.btn{
+  border:1px solid var(--border);background:#152030;color:var(--text);
+  padding:10px 16px;border-radius:10px;font-size:14px;font-weight:600;
+  cursor:pointer;transition:.15s;
+}
+.btn:hover:not(:disabled){border-color:#33445a;background:#182538}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-primary{
+  background:linear-gradient(135deg,var(--accent),#14b8a6);
+  color:#04141a;border:none;padding:14px 34px;font-size:16px;font-weight:800;
+  border-radius:12px;box-shadow:0 8px 24px rgba(45,212,191,.22);
+}
+.btn-primary:hover:not(:disabled){filter:brightness(1.07);transform:translateY(-1px)}
+.btn-primary:disabled{box-shadow:none}
+.btn-danger{background:#2a161b;border-color:#4a222b;color:#ffb4bc}
+.btn-danger:hover:not(:disabled){background:#341a20;border-color:#6a2c37}
+.btn-sm{padding:7px 11px;font-size:12.5px;border-radius:8px}
+.btn-ghost{background:transparent}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+/* ---------- status panel ---------- */
+.stack{display:flex;flex-direction:column;gap:16px}
+.row{
+  display:flex;justify-content:space-between;align-items:center;gap:10px;
+  padding:9px 0;border-bottom:1px dashed #1b2532;font-size:13.5px;
+}
+.row:last-child{border-bottom:none}
+.row .k{color:var(--muted)}
+.row .v{font-family:var(--mono);font-size:13px;text-align:right}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#44546a;margin-right:7px;vertical-align:middle}
+.dot.ok{background:var(--good);box-shadow:0 0 8px rgba(52,211,153,.7)}
+.dot.busy{background:var(--warn);box-shadow:0 0 8px rgba(251,191,36,.6);animation:pulse 1s infinite}
+.dot.err{background:var(--bad)}
+@keyframes pulse{50%{opacity:.35}}
+
+.det-object{font-size:26px;font-weight:800;letter-spacing:.3px;text-transform:capitalize}
+.det-object.none{font-size:16px;color:var(--muted);font-weight:500}
+.chips{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.chip{
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;
+  padding:5px 10px;border-radius:8px;border:1px solid var(--border);color:var(--muted);
+}
+.chip.zone{color:#04141a;background:var(--accent);border-color:var(--accent);font-weight:700}
+.bar{height:6px;background:#17202d;border-radius:99px;overflow:hidden;margin-top:12px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .25s}
+.warn-quote{
+  font-size:15px;font-weight:600;color:var(--accent-2);
+  background:#0b1622;border:1px solid #17263a;border-radius:10px;
+  padding:11px 13px;min-height:44px;
+}
+.warn-quote.empty{color:#54627a;font-weight:500;font-style:italic}
+.fps-big{font-family:var(--mono);font-size:30px;font-weight:700;color:var(--text);line-height:1}
+.fps-big small{font-size:12px;color:var(--muted);font-weight:500;margin-left:6px}
+.note{font-size:12px;color:#5f6f82;margin-top:8px}
+
+/* ---------- experiment mode ---------- */
+section.experiment{margin-top:22px}
+.section-title{display:flex;align-items:baseline;gap:12px;margin:26px 2px 12px;flex-wrap:wrap}
+.section-title h2{margin:0;font-size:18px}
+.section-title p{margin:0;color:var(--muted);font-size:13px}
+
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.field label{display:block;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.field input,.field select{
+  width:100%;padding:10px 11px;border-radius:9px;border:1px solid var(--border);
+  background:#0b121b;color:var(--text);font-size:14px;font-family:inherit;
+}
+.field input:focus,.field select:focus{outline:2px solid rgba(45,212,191,.35);border-color:var(--accent)}
+.field input[readonly]{color:var(--accent);font-family:var(--mono)}
+.inline-btn{display:flex;gap:6px}
+.inline-btn input,.inline-btn select{flex:1}
+.form-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center}
+
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:18px 0}
+.metric{background:var(--panel-2);border:1px solid var(--border);border-radius:12px;padding:13px 14px}
+.metric .lbl{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.metric .val{font-family:var(--mono);font-size:24px;font-weight:700;margin-top:6px}
+.metric .val.good{color:var(--good)}
+.metric .val.warn{color:var(--warn)}
+
+.exp-cols{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:920px){.exp-cols{grid-template-columns:1fr}}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid #18212e;white-space:nowrap}
+th{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.mono{font-family:var(--mono);font-size:12.5px}
+tr:hover td{background:rgba(255,255,255,.02)}
+.tag{font-family:var(--mono);font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);color:var(--muted)}
+.tag.ok{color:var(--good);border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.08)}
+.tag.no{color:var(--bad);border-color:rgba(248,113,113,.4);background:rgba(248,113,113,.08)}
+.empty-row{color:#5f6f82;font-style:italic;text-align:center;padding:22px}
+.icon-btn{background:none;border:none;color:#6b7c92;cursor:pointer;font-size:15px;padding:2px 6px}
+.icon-btn:hover{color:var(--bad)}
+.chart-box{height:240px;position:relative;padding:6px 4px 0}
+.chart-note{font-size:12px;color:#5f6f82;padding:10px 14px 0}
+
+/* ---------- safety section / footer ---------- */
+.safety-card{border-color:rgba(251,191,36,.3)}
+.safety-card ul{margin:8px 0 0;padding-left:18px;color:#cfd8e4;font-size:13.5px}
+.safety-card li{margin:5px 0}
+footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--border);color:#5f6f82;font-size:12.5px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.mono{font-family:var(--mono)}
+#toast{
+  position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);
+  background:#101a26;border:1px solid #26364a;color:var(--text);
+  padding:11px 18px;border-radius:10px;font-size:13.5px;opacity:0;
+  transition:.25s;pointer-events:none;max-width:92vw;z-index:50;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.err{border-color:#5c2830;color:#ffc4ca;background:#1d1216}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= HEADER ================= -->
+  <header class="top">
+    <div class="brand">
+      <div class="logo">PG</div>
+      <div>
+        <h1>PathGuard AI</h1>
+        <div class="sub">AI-powered visual assistance — environmental awareness prototype</div>
+      </div>
+    </div>
+    <div class="badges">
+      <span class="badge">v0.1 · RESEARCH PROTOTYPE</span>
+      <span class="badge">COCO-SSD · 80 CLASSES</span>
+      <span class="badge live" id="netBadge">100% ON-DEVICE</span>
+    </div>
+  </header>
+
+  <!-- ================= SAFETY BANNER ================= -->
+  <div class="safety-banner">
+    <span class="ico">⚠</span>
+    <div>
+      <strong>Research prototype — not a medical device.</strong>
+      PathGuard AI is <strong>NOT</strong> a replacement for a white cane, guide dog, or any
+      professional mobility aid. It is intended for supervised experiments only.
+      Test exclusively in safe, controlled, obstacle-free environments. Never rely on it for real-world navigation.
+    </div>
+  </div>
+
+  <!-- ================= LIVE DETECTION STAGE ================= -->
+  <div class="stage-grid">
+
+    <!-- video card -->
+    <div class="card">
+      <div class="card-head">
+        <h2>Live Camera Feed</h2>
+        <span class="badge" id="camBadge">CAMERA OFF</span>
+      </div>
+
+      <div class="video-stage" id="videoStage">
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="overlay"></canvas>
+        <div class="placeholder">
+          <div class="lens">📷</div>
+          <p><strong>Camera is off</strong></p>
+          <p class="hint">Press “Start Camera” and allow camera permission.<br>
+             Rear camera is preferred automatically on mobile devices.</p>
+        </div>
+      </div>
+
+      <div class="stage-foot">
+        <div class="controls">
+          <button id="btnStart" class="btn btn-primary">Start Camera</button>
+          <button id="btnStop" class="btn btn-danger" disabled>Stop Camera</button>
+          <button id="btnVoice" class="btn btn-ghost btn-sm" title="Speak a sample warning to verify text-to-speech">Test voice</button>
+        </div>
+        <div class="zone-legend">
+          <span><b>LEFT</b></span><span><b>CENTER</b></span><span><b>RIGHT</b></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- status / information panel -->
+    <aside class="stack">
+
+      <div class="card">
+        <div class="card-head"><h2>System Status</h2></div>
+        <div class="card-body">
+          <div class="row"><span class="k">Camera</span>
+            <span class="v"><span class="dot" id="camDot"></span><span id="camStatus">Off</span></span></div>
+          <div class="row"><span class="k">Detection model</span>
+            <span class="v"><span class="dot busy" id="modelDot"></span><span id="modelStatus">Loading…</span></span></div>
+          <div class="row"><span class="k">Resolution</span>
+            <span class="v" id="resStatus">—</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Primary Detection</h2>
+          <span class="badge" id="detCount">0 objects</span>
+        </div>
+        <div class="card-body">
+          <div class="det-object none" id="detObject">No objects detected</div>
+          <div class="chips">
+            <span class="chip zone" id="detZone" style="display:none">CENTER</span>
+            <span class="chip" id="detLabel" style="display:none">—</span>
+          </div>
+          <div class="bar"><i id="confBar"></i></div>
+          <div class="row" style="border:none;padding-bottom:0">
+            <span class="k">Confidence</span><span class="v" id="confText">—</span>
+          </div>
+          <div class="note">The closest (largest) object is prioritized; people take priority over objects of similar size.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Audio Warnings</h2></div>
+        <div class="card-body">
+          <div class="warn-quote empty" id="lastWarning">No warning spoken yet</div>
+          <div class="row" style="padding-top:10px">
+            <span class="k">Repeat cooldown</span><span class="v">2.5 s</span>
+          </div>
+          <div class="row">
+            <span class="k">Engine</span><span class="v">Browser SpeechSynthesis</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Performance</h2></div>
+        <div class="card-body">
+          <div class="fps-big"><span id="fpsValue">0</span><small>detections / sec</small></div>
+          <div class="row" style="margin-top:8px">
+            <span class="k">Last inference</span><span class="v" id="inferTime">— ms</span>
+          </div>
+          <div class="row">
+            <span class="k">Detector interval</span><span class="v">120 ms</span>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+  </div>
+
+  <!-- ================= EXPERIMENT MODE ================= -->
+  <section class="experiment">
+    <div class="section-title">
+      <h2>Experiment Mode</h2>
+      <p>Log manual trials to measure localization accuracy — an ISEF-style results table.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h2>New Test Trial</h2>
+        <span class="badge" id="trialBadge">0 trials</span>
+      </div>
+      <div class="card-body">
+
+        <!-- trial entry form -->
+        <form id="trialForm">
+          <div class="form-grid">
+            <div class="field">
+              <label for="fNum">Test number</label>
+              <input id="fNum" readonly value="1">
+            </div>
+            <div class="field">
+              <label for="fObject">Object</label>
+              <div class="inline-btn">
+                <input id="fObject" list="classList" placeholder="e.g. person" autocomplete="off">
+                <button type="button" class="btn btn-sm" id="objLive" title="Fill from current detection">Live</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="fExpected">Expected position</label>
+              <select id="fExpected">
+                <option value="">Select…</option>
+                <option value="LEFT">Left</option>
+                <option value="CENTER">Center</option>
+                <option value="RIGHT">Right</option>
+                <option value="NONE">None (no object)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="fDetected">Detected position</label>
+              <div class="inline-btn">
+                <select id="fDetected">
+                  <option value="NONE">None</option>
+                  <option value="LEFT">Left</option>
+                  <option value="CENTER">Center</option>
+                  <option value="RIGHT">Right</option>
+                </select>
+                <button type="button" class="btn btn-sm" id="detLive" title="Fill from current detection">Live</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="fResult">Result</label>
+              <select id="fResult">
+                <option value="correct">Correct</option>
+                <option value="incorrect">Incorrect</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="fTime">Detection time (ms)</label>
+              <div class="inline-btn">
+                <input id="fTime" type="number" min="0" step="1" placeholder="e.g. 95">
+                <button type="button" class="btn btn-sm" id="timeLive" title="Fill from last inference">Live</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" style="padding:11px 24px;font-size:14px">Add trial</button>
+            <button type="button" class="btn" id="btnAutoFill">Auto-fill from live detection</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btnClear">Clear all trials</button>
+            <span class="note" style="margin:0">Auto-fill copies the current object, zone and inference time.</span>
+          </div>
+        </form>
+
+        <datalist id="classList">
+          <option>person</option><option>bicycle</option><option>car</option><option>motorcycle</option>
+          <option>airplane</option><option>bus</option><option>train</option><option>truck</option>
+          <option>boat</option><option>traffic light</option><option>fire hydrant</option><option>stop sign</option>
+          <option>bench</option><option>bird</option><option>cat</option><option>dog</option><option>horse</option>
+          <option>sheep</option><option>cow</option><option>elephant</option><option>bear</option><option>zebra</option>
+          <option>giraffe</option><option>backpack</option><option>umbrella</option><option>handbag</option>
+          <option>suitcase</option><option>frisbee</option><option>skis</option><option>snowboard</option>
+          <option>kite</option><option>baseball bat</option><option>skateboard</option><option>surfboard</option>
+          <option>tennis racket</option><option>bottle</option><option>cup</option><option>fork</option><option>knife</option>
+          <option>spoon</option><option>bowl</option><option>banana</option><option>apple</option><option>sandwich</option>
+          <option>orange</option><option>broccoli</option><option>carrot</option><option>hot dog</option><option>pizza</option>
+          <option>donut</option><option>cake</option><option>chair</option><option>couch</option><option>potted plant</option>
+          <option>bed</option><option>dining table</option><option>toilet</option><option>tv</option><option>laptop</option>
+          <option>mouse</option><option>remote</option><option>keyboard</option><option>cell phone</option>
+          <option>microwave</option><option>oven</option><option>toaster</option><option>sink</option>
+          <option>refrigerator</option><option>book</option><option>clock</option><option>vase</option>
+          <option>scissors</option><option>teddy bear</option><option>hair drier</option><option>toothbrush</option>
+        </datalist>
+      </div>
+    </div>
+
+    <!-- metrics + chart -->
+    <div class="metrics" id="metrics">
+      <div class="metric"><div class="lbl">Detection accuracy</div><div class="val" id="mAcc">—</div></div>
+      <div class="metric"><div class="lbl">Left localization</div><div class="val" id="mLeft">—</div></div>
+      <div class="metric"><div class="lbl">Center localization</div><div class="val" id="mCenter">—</div></div>
+      <div class="metric"><div class="lbl">Right localization</div><div class="val" id="mRight">—</div></div>
+      <div class="metric"><div class="lbl">Avg. detection time</div><div class="val" id="mTime">—</div></div>
+      <div class="metric"><div class="lbl">False positives</div><div class="val" id="mFp">—</div></div>
+    </div>
+
+    <div class="exp-cols">
+      <!-- results table -->
+      <div class="card">
+        <div class="card-head"><h2>Results Table</h2><span class="badge" id="tblBadge">0 rows</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Object</th><th>Expected</th><th>Detected</th>
+                <th>Result</th><th>Time (ms)</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="tblBody">
+              <tr><td colspan="7" class="empty-row">No trials yet. Record your first test above.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- chart -->
+      <div class="card">
+        <div class="card-head"><h2>Localization Accuracy</h2></div>
+        <div class="chart-box"><canvas id="zoneChart"></canvas></div>
+        <div class="chart-note">Correct detections divided by trials where that zone was expected.
+          A false positive is a trial with expected position “None” where a detection was reported.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SAFETY / ABOUT ================= -->
+  <section>
+    <div class="section-title"><h2>Safety Notice &amp; Scope</h2></div>
+    <div class="card safety-card">
+      <div class="card-body">
+        <strong>PathGuard AI is a research prototype created for science-fair / ISEF-style experimentation.</strong>
+        <ul>
+          <li><strong>Not a replacement</strong> for a white cane, guide dog, or professional mobility aid of any kind.</li>
+          <li><strong>Not a medical device</strong> and not certified for navigation or safety-critical use.</li>
+          <li>Object detection is probabilistic: it can miss objects, misclassify them, or misjudge position.</li>
+          <li>Test <strong>only in safe, controlled environments</strong> — flat, well-lit, obstacle-free rooms with a supervisor present.</li>
+          <li>Audio warnings describe what is visible; they deliberately give <strong>no navigation instructions</strong>.</li>
+          <li>All processing happens in your browser. No video, audio, or experiment data is uploaded anywhere.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span>PathGuard AI · Research prototype · TensorFlow.js <span class="mono">COCO-SSD</span> · Web Speech API</span>
+    <span>No API keys · No paid services · No backend</span>
+  </footer>
+</div>
+
+<div id="toast"></div>
+
+<!-- ============ Free, open-source libraries (CDN, no API key) ============ -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+/* ==========================================================================
+   PATHGUARD AI — application logic
+   --------------------------------------------------------------------------
+   Pipeline:  camera frame -> COCO-SSD -> zone classification (LEFT/CENTER/
+   RIGHT) -> priority selection -> Text-to-Speech with per-phrase cooldown.
+   ========================================================================== */
+
+/* --------------------- configuration constants ------------------------- */
+const DETECT_INTERVAL = 120;     // ms between detector runs (~8 detections/s)
+const MIN_CONFIDENCE  = 0.50;    // ignore detections below 50 % confidence
+const COOLDOWN_MS     = 2500;    // do not repeat the SAME warning for 2.5 s
+const PRIORITY_BIAS   = 1.25;    // how strongly a person is preferred over
+                                 // an equally-sized object
+
+/* --------------------------- element handles --------------------------- */
+const $ = (id) => document.getElementById(id);
+const video      = $('video');
+const overlay    = $('overlay');
+const stage      = $('videoStage');
+const ctx        = overlay.getContext('2d');
+
+const ui = {
+  btnStart:$('btnStart'), btnStop:$('btnStop'), btnVoice:$('btnVoice'),
+  camDot:$('camDot'), camStatus:$('camStatus'), camBadge:$('camBadge'),
+  modelDot:$('modelDot'), modelStatus:$('modelStatus'), resStatus:$('resStatus'),
+  detObject:$('detObject'), detZone:$('detZone'), detLabel:$('detLabel'),
+  detCount:$('detCount'), confBar:$('confBar'), confText:$('confText'),
+  lastWarning:$('lastWarning'), fpsValue:$('fpsValue'), inferTime:$('inferTime'),
+};
+
+/* --------------------------- global state ------------------------------ */
+const state = {
+  stream:null,          // active MediaStream
+  running:false,        // camera loop flag
+  model:null,           // loaded COCO-SSD model
+  detections:[],        // results of the most recent frame
+  primary:null,         // chosen (closest / highest-priority) detection
+  rafId:0,
+  busy:false,           // detector busy flag (prevents overlap)
+  lastDetectAt:0,
+  lastInferMs:0,
+  fpsStamps:[],         // timestamps of completed detections (for FPS)
+  cooldowns:new Map(),  // phrase -> last spoken performance.now()
+  voice:null,           // preferred English TTS voice
+};
+
+/* --------------------------- tiny helpers ------------------------------ */
+const label = {LEFT:'Left', CENTER:'Center', RIGHT:'Right', NONE:'None'};
+
+function toast(msg, isErr=false){
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'show' + (isErr ? ' err' : '');
+  clearTimeout(t._h);
+  t._h = setTimeout(() => t.className = '', 3500);
+}
+
+/* ==========================================================================
+   1. MODEL LOADING  (TensorFlow.js COCO-SSD — runs 100 % on-device)
+   ========================================================================== */
+async function loadModel(){
+  if (typeof cocoSsd === 'undefined'){
+    ui.modelDot.className = 'dot err';
+    ui.modelStatus.textContent = 'Failed to load';
+    toast('Could not load the detection library. Check your internet connection (CDN) and reload.', true);
+    return;
+  }
+  try{
+    state.model = await cocoSsd.load();          // lite MobileNet by default
+    ui.modelDot.className = 'dot ok';
+    ui.modelStatus.textContent = 'Ready (COCO-SSD)';
+  }catch(err){
+    console.error(err);
+    ui.modelDot.className = 'dot err';
+    ui.modelStatus.textContent = 'Load error';
+    toast('Detection model failed to load. See console for details.', true);
+  }
+}
+
+/* ==========================================================================
+   2. CAMERA CONTROL
+   Prefers the REAR camera (facingMode: environment) on mobile devices.
+   ========================================================================== */
+async function startCamera(){
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    toast('Camera API unavailable. Serve this page over https:// or localhost.', true);
+    return;
+  }
+  ui.camDot.className = 'dot busy';
+  ui.camStatus.textContent = 'Starting…';
+  ui.btnStart.disabled = true;
+
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video:{
+        facingMode:{ideal:'environment'},   // rear camera preferred
+        width:{ideal:1280},
+        height:{ideal:720}
+      },
+      audio:false
+    });
+
+    state.stream = stream;
+    video.srcObject = stream;
+    await video.play();
+
+    state.running = true;
+    stage.classList.add('on');
+    ui.camDot.className = 'dot ok';
+    ui.camStatus.textContent = 'Live';
+    ui.camBadge.textContent = 'CAMERA LIVE';
+    ui.btnStart.disabled = true;
+    ui.btnStop.disabled = false;
+
+    // metadata may already be available by the time play() resolves
+    if (video.readyState >= 1) onVideoReady();
+    else video.addEventListener('loadedmetadata', onVideoReady, {once:true});
+
+    loop();                                   // start the render/detect loop
+  }catch(err){
+    console.error(err);
+    ui.camDot.className = 'dot err';
+    ui.btnStart.disabled = false;
+    const msg = {
+      NotAllowedError : 'Camera permission denied. Allow camera access and try again.',
+      NotFoundError   : 'No camera device was found.',
+      NotReadableError: 'Camera is already in use by another application.',
+      AbortError      : 'Could not start the camera.'
+    }[err.name] || ('Camera error: ' + err.message);
+    ui.camStatus.textContent = 'Error';
+    toast(msg, true);
+  }
+}
+
+function stopCamera(){
+  state.running = false;
+  cancelAnimationFrame(state.rafId);
+  if (state.stream) state.stream.getTracks().forEach(t => t.stop());
+  state.stream = null;
+  video.srcObject = null;
+  state.detections = [];
+  state.primary = null;
+  speechSynthesis.cancel();          // never leave speech hanging
+
+  stage.classList.remove('on');
+  clearOverlay();
+  ui.camDot.className = 'dot';
+  ui.camStatus.textContent = 'Off';
+  ui.camBadge.textContent = 'CAMERA OFF';
+  ui.btnStart.disabled = false;
+  ui.btnStop.disabled = true;
+  ui.resStatus.textContent = '—';
+  renderPrimary();                   // reset the information panel
+}
+
+function onVideoReady(){
+  ui.resStatus.textContent = video.videoWidth + '×' + video.videoHeight;
+  // keep the stage exactly the video aspect ratio so that overlay pixel
+  // coordinates map 1:1 onto the camera frame (no cropping / offset)
+  if (video.videoWidth && video.videoHeight){
+    stage.style.aspectRatio = video.videoWidth + ' / ' + video.videoHeight;
+  }
+  resizeCanvas();
+}
+
+/* ------------------------- overlay canvas sizing ----------------------- */
+function resizeCanvas(){
+  const rect = video.getBoundingClientRect();
+  const dpr  = Math.min(window.devicePixelRatio || 1, 2);
+  overlay.width  = Math.max(1, Math.round(rect.width  * dpr));
+  overlay.height = Math.max(1, Math.round(rect.height * dpr));
+}
+window.addEventListener('resize', () => { if (state.running) resizeCanvas(); });
+
+function clearOverlay(){ ctx.clearRect(0, 0, overlay.width, overlay.height); }
+
+/* ==========================================================================
+   3. MAIN LOOP — detector runs on a fixed interval, drawing runs every frame
+   ========================================================================== */
+function loop(){
+  if (!state.running) return;
+  const now = performance.now();
+
+  if (state.model && !state.busy && now - state.lastDetectAt >= DETECT_INTERVAL
+      && video.readyState >= 2 && video.videoWidth){
+    state.lastDetectAt = now;
+    detectFrame();
+  }
+  drawOverlay();
+  state.rafId = requestAnimationFrame(loop);
+}
+
+/* Run COCO-SSD on the current frame and update spatial analysis. */
+async function detectFrame(){
+  state.busy = true;
+  const t0 = performance.now();
+  try{
+    const preds = await state.model.detect(video, 20, MIN_CONFIDENCE);
+    state.lastInferMs = performance.now() - t0;
+    state.fpsStamps.push(performance.now());        // for FPS metering
+    state.detections = preds.map(p => {
+      const [x, y, w, h] = p.bbox;
+      return {class:p.class, score:p.score, bbox:p.bbox,
+              area:w * h, zone:zoneOf(x + w / 2)};
+    });
+    analyze();
+  }catch(err){
+    console.error('Detection error:', err);
+  }finally{
+    state.busy = false;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   4. SPATIAL ANALYSIS
+   The frame is split into three equal zones. The zone is decided from the
+   horizontal CENTER of each bounding box:
+        cx / frameWidth <  1/3  ->  LEFT
+        cx / frameWidth >  2/3  ->  RIGHT
+        otherwise               ->  CENTER
+   -------------------------------------------------------------------------- */
+function zoneOf(centerX){
+  const n = centerX / (video.videoWidth || 1);
+  if (n < 1/3) return 'LEFT';
+  if (n > 2/3) return 'RIGHT';
+  return 'CENTER';
+}
+
+/* Choose the primary target: the LARGEST box (closest object proxy),
+   with persons biased upward so a person wins near-ties.               */
+function analyze(){
+  const list = state.detections;
+  ui.detCount.textContent = list.length + (list.length === 1 ? ' object' : ' objects');
+
+  if (!list.length){
+    state.primary = null;
+    renderPrimary();
+    return;
+  }
+  let best = list[0], bestScore = -1;
+  for (const d of list){
+    const s = d.area * (d.class === 'person' ? PRIORITY_BIAS : 1);
+    if (s > bestScore){ bestScore = s; best = d; }
+  }
+  state.primary = best;
+  renderPrimary();
+  speakWarning(buildPhrase(best));
+}
+
+/* --------------------------------------------------------------------------
+   5. AUDIO WARNINGS (Web Speech API)
+   Short, descriptive phrases only — never navigation commands.
+   The same phrase is suppressed for COOLDOWN_MS to avoid looping speech.
+   -------------------------------------------------------------------------- */
+function buildPhrase(d){
+  if (d.class === 'person'){
+    if (d.zone === 'LEFT')  return 'Person ahead on your left';
+    if (d.zone === 'RIGHT') return 'Person ahead on your right';
+    return 'Person ahead';
+  }
+  if (d.zone === 'LEFT')  return 'Object on your left';
+  if (d.zone === 'RIGHT') return 'Object on your right';
+  return 'Object ahead';
+}
+
+function pickVoice(){
+  if (state.voice) return state.voice;
+  const voices = speechSynthesis.getVoices();
+  state.voice = voices.find(v => /en[-_]/i.test(v.lang)) || voices.find(v => /^en/i.test(v.lang)) || null;
+  return state.voice;
+}
+// voices load asynchronously in some browsers
+if ('speechSynthesis' in window){
+  speechSynthesis.onvoiceschanged = () => { state.voice = null; pickVoice(); };
+  pickVoice();
+}
+
+function speakWarning(text){
+  const now = performance.now();
+  const last = state.cooldowns.get(text) || -Infinity;
+  if (now - last < COOLDOWN_MS) return;      // still cooling down -> stay silent
+  // do not chop an utterance that just started (e.g. two large objects
+  // swapping places) — retry on the next detector tick instead
+  if (speechSynthesis.speaking && now - (state.lastSpeechAt || 0) < 1500) return;
+
+  state.cooldowns.set(text, now);
+  state.lastSpeechAt = now;
+
+  speechSynthesis.cancel();                  // one utterance at a time
+  const u = new SpeechSynthesisUtterance(text);
+  const v = pickVoice();
+  if (v) u.voice = v;
+  u.rate = 1.05;
+  u.pitch = 1;
+  speechSynthesis.speak(u);
+
+  ui.lastWarning.textContent = '“' + text + '”';
+  ui.lastWarning.classList.remove('empty');
+}
+
+/* ==========================================================================
+   6. OVERLAY RENDERING — bounding boxes, labels, zone guides
+   ========================================================================== */
+function drawOverlay(){
+  if (!state.running || video.readyState < 2 || !video.videoWidth) return;
+  const W = overlay.width, H = overlay.height;
+  const sx = W / video.videoWidth;                 // frame px -> canvas px
+  const sy = H / video.videoHeight;
+  const dpr = W / (video.getBoundingClientRect().width || W);
+
+  ctx.clearRect(0, 0, W, H);
+
+  /* zone guide lines at 1/3 and 2/3 of the width */
+  ctx.save();
+  ctx.setLineDash([8 * dpr, 8 * dpr]);
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+  ctx.lineWidth = Math.max(1, 1.2 * dpr);
+  [W / 3, 2 * W / 3].forEach(x => {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  });
+  ctx.restore();
+
+  /* faint zone labels */
+  ctx.fillStyle = 'rgba(255,255,255,0.28)';
+  ctx.font = `${11 * dpr}px ui-monospace, monospace`;
+  ctx.textAlign = 'center';
+  ['LEFT', 'CENTER', 'RIGHT'].forEach((z, i) => {
+    ctx.fillText(z, W / 6 + i * W / 3, H - 10 * dpr);
+  });
+
+  /* bounding boxes */
+  for (const d of state.detections){
+    const isPrimary = state.primary === d;
+    const isPerson  = d.class === 'person';
+    const color = isPerson ? '#34d399' : '#38bdf8';
+
+    const x = d.bbox[0] * sx, y = d.bbox[1] * sy;
+    const w = d.bbox[2] * sx, h = d.bbox[3] * sy;
+
+    ctx.lineWidth = (isPrimary ? 3 : 1.6) * dpr;
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = isPrimary ? 1 : 0.55;
+    ctx.strokeRect(x, y, w, h);
+    if (isPrimary){                                   // soft fill on target
+      ctx.fillStyle = color + '18';
+      ctx.fillRect(x, y, w, h);
+    }
+
+    /* label pill: "person 87 %" */
+    const text = d.class + ' ' + Math.round(d.score * 100) + '%';
+    ctx.font = `600 ${12 * dpr}px ui-monospace, monospace`;
+    const tw = ctx.measureText(text).width + 12 * dpr;
+    const th = 20 * dpr;
+    const ly = Math.max(0, y - th - 2 * dpr);
+    ctx.fillStyle = color;
+    ctx.fillRect(x, ly, tw, th);
+    ctx.fillStyle = '#04121a';
+    ctx.textAlign = 'left';
+    ctx.fillText(text, x + 6 * dpr, ly + th * 0.68);
+    ctx.globalAlpha = 1;
+  }
+}
+
+/* ==========================================================================
+   7. INFORMATION PANEL rendering
+   ========================================================================== */
+function renderPrimary(){
+  const d = state.primary;
+  if (!d){
+    ui.detObject.textContent = state.detections.length ? '—' : 'No objects detected';
+    ui.detObject.className = 'det-object none';
+    ui.detZone.style.display = 'none';
+    ui.detLabel.style.display = 'none';
+    ui.confBar.style.width = '0%';
+    ui.confText.textContent = '—';
+    return;
+  }
+  ui.detObject.textContent = d.class;
+  ui.detObject.className = 'det-object';
+  ui.detZone.style.display = '';
+  ui.detZone.textContent = d.zone;
+  ui.detLabel.style.display = '';
+  ui.detLabel.textContent = '“' + buildPhrase(d) + '”';
+  ui.confBar.style.width = Math.round(d.score * 100) + '%';
+  ui.confText.textContent = (d.score * 100).toFixed(1) + ' %';
+}
+
+/* rolling FPS: detections completed within the last second */
+function updateFpsReadout(){
+  const now = performance.now();
+  state.fpsStamps = state.fpsStamps.filter(t => now - t < 1000);
+  ui.fpsValue.textContent = state.fpsStamps.length;
+  ui.inferTime.textContent = state.lastInferMs ? Math.round(state.lastInferMs) + ' ms' : '— ms';
+}
+setInterval(updateFpsReadout, 500);
+
+/* ==========================================================================
+   8. EXPERIMENT MODE — manual trial logging, metrics and chart
+   All data is kept IN MEMORY ONLY (cleared on page reload).
+   ========================================================================== */
+let trials = [];
+
+const fNum = $('fNum'), fObject = $('fObject'), fExpected = $('fExpected'),
+      fDetected = $('fDetected'), fResult = $('fResult'), fTime = $('fTime');
+
+/* keep the Result field consistent with expected vs detected */
+function syncResult(){
+  const e = fExpected.value, d = fDetected.value;
+  if (!e) return;
+  fResult.value = (e === d) ? 'correct' : 'incorrect';
+}
+fExpected.addEventListener('change', syncResult);
+fDetected.addEventListener('change', syncResult);
+
+/* fill one field from the current live detection */
+function fillLive(){
+  const d = state.primary;
+  if (!d){ toast('No active detection — start the camera first.', true); return null; }
+  if (!fObject.value) fObject.value = d.class;
+  fDetected.value = d.zone;
+  fTime.value = Math.round(state.lastInferMs);
+  syncResult();
+  return d;
+}
+$('objLive').addEventListener('click', () => {
+  const d = state.primary;
+  if (!d){ toast('No active detection.', true); return; }
+  fObject.value = d.class;
+});
+$('detLive').addEventListener('click', fillLive);
+$('timeLive').addEventListener('click', () => {
+  if (!state.lastInferMs){ toast('No inference measured yet.', true); return; }
+  fTime.value = Math.round(state.lastInferMs);
+});
+$('btnAutoFill').addEventListener('click', () => { if (fillLive()) toast('Filled from live detection.'); });
+
+$('trialForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  if (!fExpected.value){ toast('Select the expected position first.', true); return; }
+  const obj = fObject.value.trim() || (state.primary ? state.primary.class : 'unknown');
+
+  trials.push({
+    num      : trials.length + 1,
+    object   : obj,
+    expected : fExpected.value,
+    detected : fDetected.value,
+    result   : fResult.value,
+    time     : Math.max(0, parseFloat(fTime.value) || 0)
+  });
+
+  /* prepare the form for the next trial */
+  fObject.value = '';
+  fTime.value = '';
+  fExpected.value = '';
+  fDetected.value = 'NONE';
+  fResult.value = 'correct';
+  fNum.value = trials.length + 1;
+  renderExperiment();
+});
+
+$('btnClear').addEventListener('click', () => {
+  if (!trials.length) return;
+  if (!confirm('Delete all ' + trials.length + ' recorded trials?')) return;
+  trials = [];
+  fNum.value = 1;
+  renderExperiment();
+});
+
+/* ---- aggregate statistics ------------------------------------------------
+   accuracy      = correct trials / all trials
+   zone accuracy = trials EXPECTED in a zone that were DETECTED in that zone
+   false positive= expected "None" but a detection was reported             */
+function computeStats(){
+  const total = trials.length;
+  const correct = trials.filter(t => t.result === 'correct').length;
+  const zoneAcc = {};
+  ['LEFT','CENTER','RIGHT'].forEach(z => {
+    const sub = trials.filter(t => t.expected === z);
+    zoneAcc[z] = sub.length
+      ? 100 * sub.filter(t => t.detected === z).length / sub.length
+      : null;
+  });
+  const times = trials.filter(t => t.time > 0).map(t => t.time);
+  const avgTime = times.length ? times.reduce((a, b) => a + b, 0) / times.length : null;
+  const falsePos = trials.filter(t => t.expected === 'NONE' && t.detected !== 'NONE').length;
+  return {
+    total,
+    accuracy : total ? 100 * correct / total : null,
+    zoneAcc, avgTime, falsePos
+  };
+}
+
+const pct = v => v === null ? '—' : v.toFixed(0) + ' %';
+
+function renderExperiment(){
+  const s = computeStats();
+
+  /* metric cards */
+  $('mAcc').textContent   = pct(s.accuracy);
+  $('mAcc').className     = 'val ' + (s.accuracy === null ? '' : s.accuracy >= 75 ? 'good' : 'warn');
+  $('mLeft').textContent  = pct(s.zoneAcc.LEFT);
+  $('mCenter').textContent= pct(s.zoneAcc.CENTER);
+  $('mRight').textContent = pct(s.zoneAcc.RIGHT);
+  $('mTime').textContent  = s.avgTime === null ? '—' : Math.round(s.avgTime) + ' ms';
+  $('mFp').textContent    = s.total ? s.falsePos : '—';
+  $('mFp').className      = 'val ' + (s.falsePos > 0 ? 'warn' : 'good');
+
+  $('trialBadge').textContent = s.total + (s.total === 1 ? ' trial' : ' trials');
+  $('tblBadge').textContent   = s.total + (s.total === 1 ? ' row' : ' rows');
+
+  /* results table */
+  const body = $('tblBody');
+  if (!trials.length){
+    body.innerHTML = '<tr><td colspan="7" class="empty-row">No trials yet. Record your first test above.</td></tr>';
+  }else{
+    body.innerHTML = trials.map((t, i) => `
+      <tr>
+        <td class="mono">${t.num}</td>
+        <td>${escapeHtml(t.object)}</td>
+        <td><span class="tag">${label[t.expected] ?? t.expected}</span></td>
+        <td><span class="tag">${label[t.detected] ?? t.detected}</span></td>
+        <td><span class="tag ${t.result === 'correct' ? 'ok' : 'no'}">${t.result === 'correct' ? 'CORRECT' : 'INCORRECT'}</span></td>
+        <td class="mono">${t.time > 0 ? t.time : '—'}</td>
+        <td><button class="icon-btn" data-i="${i}" title="Delete trial">✕</button></td>
+      </tr>`).join('');
+
+    body.querySelectorAll('.icon-btn').forEach(b =>
+      b.addEventListener('click', () => {
+        trials.splice(+b.dataset.i, 1);
+        trials.forEach((t, idx) => t.num = idx + 1);
+        fNum.value = trials.length + 1;
+        renderExperiment();
+      }));
+  }
+
+  updateChart(s);
+}
+
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---- Chart.js bar chart: localization accuracy per zone ------------------ */
+let zoneChart = null;
+function initChart(){
+  if (typeof Chart === 'undefined'){
+    $('zoneChart').closest('.chart-box').innerHTML =
+      '<div class="empty-row">Chart library unavailable (offline?). Table data is unaffected.</div>';
+    return;
+  }
+  zoneChart = new Chart($('zoneChart'), {
+    type:'bar',
+    data:{
+      labels:['Left', 'Center', 'Right'],
+      datasets:[{
+        label:'Localization accuracy (%)',
+        data:[0, 0, 0],
+        backgroundColor:['#2dd4bf', '#38bdf8', '#a78bfa'],
+        borderRadius:7, barPercentage:0.62
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      scales:{
+        y:{min:0, max:100,
+           ticks:{color:'#93a1b3', callback:v => v + '%', stepSize:25},
+           grid:{color:'#1b2532'}},
+        x:{ticks:{color:'#e6edf5', font:{weight:'600'}}, grid:{display:false}}
+      },
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c => ' ' + c.parsed.y + '% correct'}}
+      },
+      animation:{duration:350}
+    }
+  });
+}
+function updateChart(s){
+  if (!zoneChart) return;
+  zoneChart.data.datasets[0].data = [
+    s.zoneAcc.LEFT  ?? 0,
+    s.zoneAcc.CENTER?? 0,
+    s.zoneAcc.RIGHT ?? 0
+  ];
+  zoneChart.update();
+}
+
+/* ==========================================================================
+   9. WIRING & LIFECYCLE
+   ========================================================================== */
+ui.btnStart.addEventListener('click', startCamera);
+ui.btnStop.addEventListener('click', stopCamera);
+// test button: clear this phrase's cooldown first, then speak immediately
+ui.btnVoice.addEventListener('click', () => {
+  state.cooldowns.delete('Person ahead');
+  speakWarning('Person ahead');
+  // speaking state is set asynchronously — re-check shortly after
+  setTimeout(() => {
+    if (!speechSynthesis.speaking) toast('No speech output available in this browser.', true);
+  }, 400);
+});
+
+window.addEventListener('pagehide', () => { if (state.running) stopCamera(); });
+
+// offline / online awareness (the model needs the CDN once, then it is cached)
+window.addEventListener('offline', () => {
+  $('netBadge').textContent = 'OFFLINE';
+  $('netBadge').classList.remove('live');
+});
+window.addEventListener('online', () => {
+  $('netBadge').textContent = '100% ON-DEVICE';
+  $('netBadge').classList.add('live');
+});
+
+renderExperiment();   // draw the empty experiment state
+initChart();
+loadModel();
+</script>
+</body>
+</html>
